@@ -58,7 +58,7 @@ case "${OS_TYPE}" in
             sed -e 's/HOSTNAME=//' | \
             sed -e s/\"//g)"
         ;;
-    gentoo)
+    gentoo|funtoo)
         HNAME="${TARGET}/etc/conf.d/hostname"
         # baselayout-2.x support
         if [ -d ${TARGET}/usr/share/openrc ] ; then
@@ -87,7 +87,7 @@ if [ "$OLD_HNAME" = "$old_name" \
         redhat)
             sed -ie "s/HOSTNAME=${OLD_HNAME}/HOSTNAME=${instance}/" $HNAME
             ;;
-        gentoo)
+        gentoo|funtoo)
             if [ -d ${TARGET}/usr/share/openrc ] ; then
                 sed -ie "s/hostname.*/hostname=\"${instance}\"/" $HNAME
             else

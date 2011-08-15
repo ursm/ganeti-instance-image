@@ -128,23 +128,44 @@ EOF
 }
 
 gentoo_setup() {
-    if [ ! -f "${TARGET}/etc/conf.d/net" ] ; then
-        log_error "Missing target network file"
-        exit 1
-    fi
-    if [ -z "${STATIC}" ] ; then
-        cat > ${TARGET}/etc/conf.d/net << EOF
+    get_os $TARGET
+    case $OPERATING_SYSTEM in
+        gentoo)
+            if [ ! -f "${TARGET}/etc/conf.d/net" ] ; then
+                log_error "Missing target network file"
+                exit 1
+            fi
+            if [ -z "${STATIC}" ] ; then
+                cat > ${TARGET}/etc/conf.d/net << EOF
 config_eth0=( "dhcp" )
 EOF
-    else
-        cat > ${TARGET}/etc/conf.d/net << EOF
+            else
+                cat > ${TARGET}/etc/conf.d/net << EOF
 config_eth0=( "${ADDRESS} netmask ${NETMASK}" )
 routes_eth0=( "default gw ${GATEWAY}" )
 EOF
-    fi
+            fi
 
-    chroot ${TARGET} ln -sf /etc/init.d/net.lo /etc/init.d/net.eth0
-    chroot ${TARGET} rc-update add net.eth0 default
+            chroot ${TARGET} ln -sf /etc/init.d/net.lo /etc/init.d/net.eth0
+            chroot ${TARGET} rc-update add net.eth0 default
+            ;;
+        funtoo)
+            if [ -z "${STATIC}" ] ; then
+                chroot ${TARGET} rc-update add dhcpcd default
+            else
+                cat > ${TARGET}/etc/conf.d/netif.eth0 << EOF
+template="interface"
+
+ipaddr="${ADDRESS}/${NETMASK}"
+gateway="${GATEWAY}"
+EOF
+
+                chroot ${TARGET} ln -sf /etc/init.d/netif.tmpl /etc/init.d/netif.eth0
+                chroot ${TARGET} rc-update add netif.eth0 default
+            fi
+            ;;
+        *) log_error "Internal error!" >&2; exit 1;;
+    esac
 
     if [ -n "${FQDN}" ] ; then
         # baselayout-2.x

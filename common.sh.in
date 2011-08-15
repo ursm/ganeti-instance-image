@@ -127,7 +127,11 @@ get_os() {
     elif [ -e ${target}/etc/debian_version ] ; then
         OPERATING_SYSTEM="debian"
     elif [ -e ${target}/etc/gentoo-release ] ; then
-        OPERATING_SYSTEM="gentoo"
+        if [ -n "$(grep -i funtoo ${target}/etc/gentoo-release)" ] ; then
+            OPERATING_SYSTEM="funtoo"
+        else
+            OPERATING_SYSTEM="gentoo"
+        fi
     elif [ -e ${target}/etc/fedora-release ] ; then
         OPERATING_SYSTEM="fedora"
     elif [ -e ${target}/etc/redhat-release ] ; then
@@ -329,7 +333,7 @@ setup_console() {
     fi
     get_os $target
     case $OPERATING_SYSTEM in
-        gentoo)
+        gentoo|funtoo)
             sed -i -e 's/.*ttyS0.*/s0:12345:respawn:\/sbin\/agetty 115200 ttyS0 vt100/' \
                 ${target}/etc/inittab
             ;;
